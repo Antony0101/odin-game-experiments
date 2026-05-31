@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Game",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/game",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb"
+        },
+        {
+            "name": "Debug Png Meta Generator",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/png-meta-generator/png-meta-generator",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb"
+        }
+    ]
+}
