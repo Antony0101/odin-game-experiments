@@ -16,6 +16,14 @@
             "program": "${workspaceFolder}/scripts/png-meta-generator/png-meta-generator",
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb"
+        },
+        {
+            "name": "Debug Png Atlas Generator",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/png-atlas-generator/png-atlas-generator",
+            "cwd": "${workspaceFolder}/scripts/png-atlas-generator",
+            "MIMode": "gdb"
         }
     ]
 }
