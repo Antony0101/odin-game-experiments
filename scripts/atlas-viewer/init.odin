@@ -7,8 +7,11 @@ import "core:strings"
 import gd "data"
 import rl "vendor:raylib"
 
+json_name := "backgrounds1.json"
+png_name: cstring = "backgrounds1.png"
+
 init :: proc() {
-	data, err1 := os.read_entire_file_from_path("ruins.json", context.allocator)
+	data, err1 := os.read_entire_file_from_path(json_name, context.allocator)
 	if err1 != os.ERROR_NONE {
 		fmt.println("Failed to read file")
 		return
@@ -29,5 +32,5 @@ init :: proc() {
 		)
 	}
 	fmt.println("SAmple", gd.atlasJsonData.frames[0].name)
-	gd.atlasTexture = rl.LoadTexture("ruins.png")
+	gd.atlasTexture = rl.LoadTexture(png_name)
 }
