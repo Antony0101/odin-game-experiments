@@ -16,8 +16,24 @@ main :: proc() {
 		}
 		rl.BeginDrawing()
 		mousePointer := rl.GetMousePosition()
-		p.Button(2, [2]f32{100, 100}, cstring("hello world"), mousePointer)
-		p.Button(2, [2]f32{300, 100}, cstring("hello sample"), mousePointer)
+		p.Button(
+			2,
+			[2]f32{100, 100},
+			cstring("hello world"),
+			mousePointer,
+			nil,
+			.Paint,
+			"pt-10 pb-25 bg-yellow hover:bg-#1122ff hover:border-red hover:border-5",
+		)
+		p.Button(
+			3,
+			[2]f32{300, 100},
+			cstring("hello sample"),
+			mousePointer,
+			nil,
+			.Paint,
+			"pr-10 pl-50 m-15",
+		)
 		rl.ClearBackground(rl.WHITE)
 		rl.EndDrawing()
 	}

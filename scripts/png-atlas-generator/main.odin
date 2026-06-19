@@ -31,7 +31,7 @@ Sprite :: struct {
 	image: rl.Image,
 }
 
-folder :: "ruins"
+folder :: "desert"
 
 main :: proc() {
 	sprite_paths: [dynamic]string = {}
