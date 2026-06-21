@@ -1,5 +1,4 @@
 package main
 
 init :: proc() {
-
 }

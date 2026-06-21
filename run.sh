@@ -2,6 +2,9 @@
 
 set -e
 
-odin build src -out:output/game
+odin build platform/linux_dev -debug -out:output/platform -define:RAYLIB_SHARED=true -extra-linker-flags:'-Wl,-rpath,\$$ORIGIN' 
 
-./output/game
+odin build src -build-mode:shared -debug -out:output/game.so -define:RAYLIB_SHARED=true 
+# odin build src -out:output/lib
+
+./output/platform
