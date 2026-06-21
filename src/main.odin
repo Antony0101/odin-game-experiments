@@ -9,7 +9,6 @@ import rl "vendor:raylib"
 SCREEN_X_DIM :: 1280
 SCREEN_Y_DIM :: 720
 
-// should_run := true
 
 frame_timers := struct {
 	sum_time: f32,
@@ -25,14 +24,7 @@ dt: f32
 
 @(export)
 game_init :: proc(g_state: ^shared.Global_State) {
-	fmt.println("here123 init")
-	// dt: f32
-	// rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_RESIZABLE, .WINDOW_TOPMOST})
-	// rl.InitWindow(1600, 900, "prototype")
-	// rl.SetWindowPosition(200, 200)
 	g_state.system.target = rl.LoadRenderTexture(SCREEN_X_DIM, SCREEN_Y_DIM)
-	fmt.println("here 1123 init")
-	// defer rl.UnloadRenderTexture(target)
 	rl.SetTargetFPS(60)
 	init()
 	g_state.system.texture = rl.LoadTexture("assets/green-3.png")
@@ -45,7 +37,7 @@ game_exit :: proc(g_state: ^shared.Global_State) {
 }
 
 @(export)
-game_main_loop :: proc(g_state: ^shared.Global_State) -> bool {
+game_loop :: proc(g_state: ^shared.Global_State) -> bool {
 	should_run := true
 	if frame_timers.count >= 300 {
 		fmt.println()
@@ -63,10 +55,10 @@ game_main_loop :: proc(g_state: ^shared.Global_State) -> bool {
 		should_run = false
 		return should_run
 	}
-	update(&main_data, dt)
+	update(&g_state.game_state, dt)
 	rl.BeginTextureMode(g_state.system.target)
 	draw()
-	rl.DrawTextureEx(g_state.system.texture, main_data.position, 1, 5, rl.WHITE)
+	rl.DrawTextureEx(g_state.system.texture, g_state.game_state.position, 1, 5, rl.WHITE)
 	rl.EndTextureMode()
 	// rl.BeginDrawing()
 	screen_w := f32(rl.GetScreenWidth())
@@ -91,7 +83,6 @@ game_main_loop :: proc(g_state: ^shared.Global_State) -> bool {
 
 	rl.BeginDrawing()
 
-	// draw()
 	rl.ClearBackground(rl.BLACK)
 
 	rl.DrawTexturePro(g_state.system.target.texture, source, dest, {0, 0}, 0, rl.WHITE)

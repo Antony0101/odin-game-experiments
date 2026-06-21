@@ -1,10 +1,11 @@
 package main
 
+import "../shared"
 import rl "vendor:raylib"
 
 SPEED: f32 = 80
 
-update :: proc(main_data: ^MAIN_DATA, dt: f32) {
+update :: proc(main_data: ^shared.Game_State, dt: f32) {
 	if rl.IsKeyDown(.DOWN) {
 		main_data.position.y = min(720, main_data.position.y + SPEED * dt)
 	}
