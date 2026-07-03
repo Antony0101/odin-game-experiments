@@ -5,25 +5,31 @@ import "core:dynlib"
 import "core:fmt"
 import "core:math"
 import "core:os"
+import "core:path/filepath"
 import "core:strings"
 import "core:sync"
 import "core:thread"
 import "core:time"
 import rl "vendor:raylib"
 
-should_exit := false
-lib_mutex := sync.Mutex{}
+// Contants
+Game_Lib_Path :: "/game"
+Game_Lib_Ex :: ".so"
 
-Game_Code :: struct {
-	lib:      dynlib.Library,
-	init:     shared.game_init,
-	loop:     shared.game_loop,
-	commit:   shared.game_commit,
-	exit:     shared.game_exit,
-	modified: time.Time,
+// main structs and global vars
+// TODO(antony0101): check for unwanted race conditions as this boolean is used in reload thread
+should_lib_reload := false
+should_exit := false
+
+Game_Lib :: struct {
+	lib:    dynlib.Library,
+	init:   shared.game_init,
+	loop:   shared.game_loop,
+	commit: shared.game_commit,
+	exit:   shared.game_exit,
 }
 
-game_lib: Game_Code
+game_lib: Game_Lib
 
 Frame_Timers :: struct {
 	sum_time: f32,
@@ -33,8 +39,7 @@ Frame_Timers :: struct {
 }
 dt: f32
 
-Game_Lib_Path :: "/game"
-Game_Lib_Ex :: ".so"
+
 lib_path: string
 
 frame_timer_begin :: proc(frame_timers: ^Frame_Timers) {
@@ -70,12 +75,14 @@ main :: proc() {
 		min_time = math.F32_MAX,
 	}
 
-	// exe_path := os.args[0]
-	// exe_dir := filepath.dir(string(exe_path))
-	// os.set_working_directory(exe_dir)
-	t: thread.Thread
+	// update the cwd
+	exe_path := os.args[0]
+	exe_dir := filepath.dir(string(exe_path))
+	os.set_working_directory(exe_dir)
+	fmt.println(exe_dir)
 
-	t = thread.create_and_start(worker_proc, nil)^
+	check_and_build_thread: thread.Thread
+	check_and_build_thread = thread.create_and_start(worker_proc, nil)^
 	cwd, err := os.get_executable_directory(context.allocator)
 	if err != nil {
 		fmt.println("Failed:", err)
@@ -88,7 +95,7 @@ main :: proc() {
 	// defer delete(lib_path)
 	fmt.println("lib path:", lib_path)
 	// state := shared.Game_State{}
-	game_lib = load_game(lib_path)
+	load_or_update_game(lib_path, &game_lib)
 	lib_path_ex := strings.concatenate([]string{lib_path, Game_Lib_Ex})
 	fmt.println("game init")
 	init()
@@ -98,6 +105,10 @@ main :: proc() {
 	should_run := true
 
 	for should_run {
+		if should_lib_reload {
+			load_or_update_game(lib_path, &game_lib)
+			should_lib_reload = false
+		}
 		start_time := time.now()
 		frame_timer_begin(&frame_timers)
 
@@ -110,11 +121,9 @@ main :: proc() {
 		// 	game = load_game(lib_path)
 		// 	last_write = new_write
 		// }
-		sync.lock(&lib_mutex)
 		should_run = game_lib.loop(global_state, dt)
 		rl.BeginDrawing()
 		game_lib.commit(global_state)
-		sync.unlock(&lib_mutex)
 		frame_timer_end(&frame_timers, start_time)
 		rl.EndDrawing()
 
@@ -125,6 +134,6 @@ main :: proc() {
 	}
 	fmt.println("clean game artifacts")
 	game_lib.exit(global_state)
-	thread.join(&t)
+	thread.join(&check_and_build_thread)
 	fmt.println("thread control recieved")
 }
