@@ -1,11 +1,10 @@
 package platform_dev
-import "../../shared"
 import "base:intrinsics"
 import "core:dynlib"
 import "core:fmt"
+import "core:log"
 import "core:math/rand"
 import "core:os"
-import "core:strconv"
 import "core:strings"
 import "core:sync"
 import "core:sys/posix"
@@ -47,7 +46,7 @@ worker_proc :: proc() {
 		n := posix.read(posix.FD(fd), &buf[0], len(buf))
 		// TODO(antony0101): handle the events properly to check whether it needs full restart or just update function swapping
 		if n > 0 {
-			fmt.println("something changed")
+			log.info("changes detected in game code")
 			// os.file_de
 			b_state, b_stdout, b_stderr, b_err := os.process_exec(
 				{command = command},
@@ -61,8 +60,7 @@ worker_proc :: proc() {
 			fmt.println("berr", b_err)
 
 			should_lib_reload = true
-		} else do fmt.println("no changes")
-		fmt.println("thread running")
+		}
 		time.sleep(1 * time.Second)
 	}
 	fmt.println("thread exiting")

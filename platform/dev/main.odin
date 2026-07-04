@@ -6,15 +6,16 @@ import "core:fmt"
 import "core:math"
 import "core:os"
 import "core:path/filepath"
-import "core:strings"
 import "core:sync"
 import "core:thread"
 import "core:time"
 import rl "vendor:raylib"
 
 // Contants
-Game_Lib_Path :: "/game"
+Game_Lib_Path :: "./game"
 Game_Lib_Ex :: ".so"
+LogFile :: "./logs/frame_log.txt"
+
 
 // main structs and global vars
 // TODO(antony0101): check for unwanted race conditions as this boolean is used in reload thread
@@ -32,10 +33,11 @@ Game_Lib :: struct {
 game_lib: Game_Lib
 
 Frame_Timers :: struct {
-	sum_time: f32,
-	max_time: f32,
-	min_time: f32,
-	count:    i16,
+	sum_time:      f32,
+	max_time:      f32,
+	min_time:      f32,
+	count:         i16,
+	global_couter: u64,
 }
 dt: f32
 
@@ -55,18 +57,25 @@ frame_timer_begin :: proc(frame_timers: ^Frame_Timers) {
 	}
 }
 
-frame_timer_end :: proc(frame_timers: ^Frame_Timers, start_time: time.Time) {
+frame_timer_end :: proc(frame_timers: ^Frame_Timers, start_time: time.Time) -> f32 {
 	elapsed_time_micro_seconds := f32(time.since(start_time)) / 1000
 	frame_timers.max_time = max(frame_timers.max_time, elapsed_time_micro_seconds)
 	frame_timers.min_time = min(frame_timers.min_time, elapsed_time_micro_seconds)
 	frame_timers.sum_time += elapsed_time_micro_seconds
 	frame_timers.count += 1
+	frame_timers.global_couter += 1
+	return elapsed_time_micro_seconds
 }
 
-init :: proc() {
+init :: proc(gs: ^shared.Global_State) {
+	// init the raylib
 	rl.SetConfigFlags({.VSYNC_HINT, .WINDOW_RESIZABLE, .WINDOW_TOPMOST})
 	rl.InitWindow(1600, 900, "prototype")
 	rl.SetWindowPosition(200, 200)
+
+	// setup the global state
+	gs.pf.flogger = frame_log
+	gs.pf.floggerf = frame_logf
 }
 
 
@@ -81,57 +90,56 @@ main :: proc() {
 	os.set_working_directory(exe_dir)
 	fmt.println(exe_dir)
 
+	// start the check and build thread for hor reloading
 	check_and_build_thread: thread.Thread
 	check_and_build_thread = thread.create_and_start(worker_proc, nil)^
-	cwd, err := os.get_executable_directory(context.allocator)
-	if err != nil {
-		fmt.println("Failed:", err)
-		return
-	}
-	global_state := new(shared.Global_State)
 
-	fmt.println("exe directory:", cwd)
-	lib_path = strings.concatenate([]string{cwd, Game_Lib_Path})
-	// defer delete(lib_path)
-	fmt.println("lib path:", lib_path)
-	// state := shared.Game_State{}
-	load_or_update_game(lib_path, &game_lib)
-	lib_path_ex := strings.concatenate([]string{lib_path, Game_Lib_Ex})
-	fmt.println("game init")
-	init()
+	// setup frame logger
+	logHandler := frame_logger_setup(LogFile)
+
+	// load the game lib
+	load_or_update_game(Game_Lib_Path, &game_lib)
+
+	// setup Global State and complete initialization
+	global_state := new(shared.Global_State)
+	init(global_state)
 	game_lib.init(global_state)
 
-	// last_write: time.Time
 	should_run := true
 
 	for should_run {
+		global_state.frameId = frame_timers.global_couter
+
+		// reload game lib if changes are detected by worker thread
 		if should_lib_reload {
-			load_or_update_game(lib_path, &game_lib)
+			load_or_update_game(Game_Lib_Path, &game_lib)
 			should_lib_reload = false
 		}
 		start_time := time.now()
 		frame_timer_begin(&frame_timers)
+		frame_log(frame_timers.global_couter, .Info, "frame begin")
 
-		// info, ok_file := os.stat(lib_path_ex, context.temp_allocator)
-
-		// new_write := info.modification_time
-
-		// if new_write != last_write {
-		// 	unload_game(&game)
-		// 	game = load_game(lib_path)
-		// 	last_write = new_write
-		// }
 		should_run = game_lib.loop(global_state, dt)
 		rl.BeginDrawing()
 		game_lib.commit(global_state)
-		frame_timer_end(&frame_timers, start_time)
+		time_micro_sec := frame_timer_end(&frame_timers, start_time)
 		rl.EndDrawing()
 
 		dt = rl.GetFrameTime()
+		// counter -1 because counter get updated in frame_time_end proc
+		frame_logf(
+			frame_timers.global_couter - 1,
+			.Info,
+			"frame end, dt:%v, time:%v\u03BCs ",
+			dt,
+			time_micro_sec,
+		)
 
 		sync.atomic_store(&should_exit, !should_run)
 
 	}
+	// write frame logs
+	frame_dump_to_file(logHandler)
 	fmt.println("clean game artifacts")
 	game_lib.exit(global_state)
 	thread.join(&check_and_build_thread)
