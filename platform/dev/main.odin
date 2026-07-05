@@ -2,7 +2,7 @@ package platform_dev
 
 import "../../shared"
 import "core:dynlib"
-import "core:fmt"
+import "core:log"
 import "core:math"
 import "core:os"
 import "core:path/filepath"
@@ -46,10 +46,10 @@ lib_path: string
 
 frame_timer_begin :: proc(frame_timers: ^Frame_Timers) {
 	if frame_timers.count >= 300 {
-		fmt.println()
-		fmt.println("avg frame time:", frame_timers.sum_time / f32(frame_timers.count), "\u03BCs")
-		fmt.println("min frame time:", frame_timers.min_time, "\u03BCs")
-		fmt.println("max frame time:", frame_timers.max_time, "\u03BCs")
+		log.info("current frame counter:", frame_timers.global_couter)
+		log.info("avg frame time:", frame_timers.sum_time / f32(frame_timers.count), "\u03BCs")
+		log.info("min frame time:", frame_timers.min_time, "\u03BCs")
+		log.info("max frame time:", frame_timers.max_time, "\u03BCs")
 		frame_timers.count = 0
 		frame_timers.max_time = 0
 		frame_timers.min_time = math.F32_MAX
@@ -80,22 +80,42 @@ init :: proc(gs: ^shared.Global_State) {
 
 
 main :: proc() {
-	frame_timers := Frame_Timers {
-		min_time = math.F32_MAX,
-	}
-
 	// update the cwd
 	exe_path := os.args[0]
 	exe_dir := filepath.dir(string(exe_path))
 	os.set_working_directory(exe_dir)
-	fmt.println(exe_dir)
+	// setup loggers
+	//frame ring logger (this will also create logs directory if not created)
+	logHandler := frame_logger_setup(LogFile)
+	handle, err := os.open(
+		"logs/logs.txt",
+		os.O_RDWR | os.O_APPEND | os.O_CREATE,
+		os.Permissions_Read_All + {.Write_User},
+	)
+	assert(err == nil, "Cannot open log file")
+
+	file_logger := log.create_file_logger(handle)
+	// This closes the file handle
+	defer log.destroy_file_logger(file_logger)
+
+	console_logger := log.create_console_logger()
+	defer log.destroy_console_logger(console_logger)
+
+	multi_logger := log.create_multi_logger(console_logger, file_logger)
+	defer log.destroy_multi_logger(multi_logger)
+
+	context.logger = multi_logger
+
+	log.info("current working dir:", exe_dir)
+	frame_timers := Frame_Timers {
+		min_time = math.F32_MAX,
+	}
+
 
 	// start the check and build thread for hor reloading
 	check_and_build_thread: thread.Thread
-	check_and_build_thread = thread.create_and_start(worker_proc, nil)^
+	check_and_build_thread = thread.create_and_start(worker_proc, context)^
 
-	// setup frame logger
-	logHandler := frame_logger_setup(LogFile)
 
 	// load the game lib
 	load_or_update_game(Game_Lib_Path, &game_lib)
@@ -140,8 +160,8 @@ main :: proc() {
 	}
 	// write frame logs
 	frame_dump_to_file(logHandler)
-	fmt.println("clean game artifacts")
+	log.info("cleaning game artifacts")
 	game_lib.exit(global_state)
 	thread.join(&check_and_build_thread)
-	fmt.println("thread control recieved")
+	log.info("thread control recieved from reload thread")
 }
