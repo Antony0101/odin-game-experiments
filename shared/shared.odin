@@ -9,12 +9,21 @@ Log_Level :: enum {
 }
 
 System :: struct {
-	target:  rl.RenderTexture2D,
-	texture: rl.Texture2D,
+	target:    rl.RenderTexture2D,
+	texture:   rl.Texture2D,
+	layoutmap: [11][16]u8,
 }
 Game_State :: struct {
-	player:   rl.Vector2,
-	position: rl.Vector2,
+	player: struct {
+		using pos: rl.Vector2,
+		isMoving:  bool,
+		nextpos:   rl.Vector2,
+		movements: struct {
+			stack: [10]rl.KeyboardKey,
+			top:   i8,
+		},
+	},
+	view:   rl.Camera2D,
 }
 
 PlatFormFunctions :: struct {
@@ -32,4 +41,5 @@ Global_State :: struct {
 game_loop :: #type proc(g_state: ^Global_State, dt: f32) -> bool
 game_commit :: #type proc(g_state: ^Global_State)
 game_init :: #type proc(g_state: ^Global_State)
+game_setup :: #type proc(g_state: ^Global_State)
 game_exit :: #type proc(g_state: ^Global_State)

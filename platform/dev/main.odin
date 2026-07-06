@@ -25,6 +25,7 @@ should_exit := false
 Game_Lib :: struct {
 	lib:    dynlib.Library,
 	init:   shared.game_init,
+	setup:  shared.game_setup,
 	loop:   shared.game_loop,
 	commit: shared.game_commit,
 	exit:   shared.game_exit,
@@ -124,6 +125,7 @@ main :: proc() {
 	global_state := new(shared.Global_State)
 	init(global_state)
 	game_lib.init(global_state)
+	game_lib.setup(global_state)
 
 	should_run := true
 
@@ -133,6 +135,7 @@ main :: proc() {
 		// reload game lib if changes are detected by worker thread
 		if should_lib_reload {
 			load_or_update_game(Game_Lib_Path, &game_lib)
+			game_lib.setup(global_state)
 			should_lib_reload = false
 		}
 		start_time := time.now()
