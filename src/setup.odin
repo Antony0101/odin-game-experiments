@@ -24,7 +24,7 @@ game_setup :: proc(g_state: ^shared.Global_State) {
 		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 	}
-	image := rl.GenImageColor(80, 80, rl.BLANK)
+	image := rl.GenImageColor(320, 320, rl.BLANK)
 	textures.generateDesertTexture(&image)
 	enum1 :: textures.texture_enums
 	g_state.system.textures[enum1.desert1].texture = rl.LoadTextureFromImage(image)
