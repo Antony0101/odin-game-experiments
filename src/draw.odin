@@ -16,9 +16,7 @@ draw :: proc(g_state: ^shared.Global_State, dt: f32) {
 		player.movements.stack[mtop^] = keyPressed
 		mtop^ = min(mtop^ + 1, len(player.movements.stack))
 	}
-	// if rl.IsKeyPressed(.UP) do player.nextpos.y = player.y - side
-	// if rl.IsKeyPressed(.LEFT) do player.nextpos.x = player.x - side
-	// if rl.IsKeyPressed(.RIGHT) do player.nextpos.x = player.x + side
+
 	if !player.isMoving && mtop^ > 0 {
 		key := player.movements.stack[mtop^ - 1]
 		mtop^ = max(0, mtop^ - 1)
@@ -41,9 +39,9 @@ draw :: proc(g_state: ^shared.Global_State, dt: f32) {
 		view.zoom -= 0.2
 	}
 
-	if player.y + side > view.target.y + SCREEN_Y_DIM do view.target.y += (player.y + side) - (view.target.y + SCREEN_Y_DIM)
+	if player.y + side > view.target.y + shared.SCREEN_Y_DIM do view.target.y += (player.y + side) - (view.target.y + shared.SCREEN_Y_DIM)
 	if player.y < view.target.y do view.target.y -= (view.target.y) - (player.y)
-	if player.x + side > view.target.x + SCREEN_X_DIM do view.target.x += (player.x + side) - (view.target.x + SCREEN_X_DIM)
+	if player.x + side > view.target.x + shared.SCREEN_X_DIM do view.target.x += (player.x + side) - (view.target.x + shared.SCREEN_X_DIM)
 	if player.x < view.target.x do view.target.x -= (view.target.x) - (player.x)
 	is_collided: bool = false
 	rl.BeginMode2D(view^)
@@ -79,10 +77,6 @@ draw :: proc(g_state: ^shared.Global_State, dt: f32) {
 	} else {
 		player.isMoving = false
 	}
-	// if !is_collided {
-	// 	player.x = playerx
-	// 	player.y = playery
-	// }
 	// player draw
 	rl.DrawRectangle(i32(player.x), i32(player.y), side, side, rl.ORANGE)
 	rl.EndMode2D()

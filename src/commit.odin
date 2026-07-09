@@ -7,10 +7,10 @@ game_commit :: proc(g_state: ^shared.Global_State) {
 	screen_w := f32(rl.GetScreenWidth())
 	screen_h := f32(rl.GetScreenHeight())
 
-	scale := min(screen_w / SCREEN_X_DIM, screen_h / SCREEN_Y_DIM)
+	scale := min(screen_w / shared.SCREEN_X_DIM, screen_h / shared.SCREEN_Y_DIM)
 
-	draw_w := f32(SCREEN_X_DIM) * scale
-	draw_h := f32(SCREEN_Y_DIM) * scale
+	draw_w := f32(shared.SCREEN_X_DIM) * scale
+	draw_h := f32(shared.SCREEN_Y_DIM) * scale
 
 	offset_x := (screen_w - draw_w) * 0.5
 	offset_y := (screen_h - draw_h) * 0.5

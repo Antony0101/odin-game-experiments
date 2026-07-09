@@ -9,9 +9,18 @@ Log_Level :: enum {
 }
 
 System :: struct {
-	target:    rl.RenderTexture2D,
-	texture:   rl.Texture2D,
-	layoutmap: [11][16]u8,
+	target:        rl.RenderTexture2D,
+	// texture:   rl.Texture2D,
+	// layoutmap: [11][16]Tile,
+	layoutmap:     [11][16]u8,
+	// texture:   struct {
+	// 	desert1: rl.Texture2D,
+	// },
+	textures:      [30]struct {
+		name:    string,
+		texture: rl.Texture2D,
+	},
+	texture_count: u16,
 }
 Game_State :: struct {
 	player: struct {

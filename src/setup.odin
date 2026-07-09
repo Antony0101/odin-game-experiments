@@ -1,5 +1,7 @@
 package game
 import "../shared"
+import "./textures"
+import rl "vendor:raylib"
 
 @(export)
 game_setup :: proc(g_state: ^shared.Global_State) {
@@ -22,4 +24,13 @@ game_setup :: proc(g_state: ^shared.Global_State) {
 		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 	}
+	image := rl.GenImageColor(80, 80, rl.BLANK)
+	textures.generateDesertTexture(&image)
+	enum1 :: textures.texture_enums
+	g_state.system.textures[enum1.desert1].texture = rl.LoadTextureFromImage(image)
+	g_state.system.textures[enum1.desert1].name = "desert1"
+	g_state.system.textures[enum1.desert2].texture = rl.LoadTextureFromImage(image)
+	g_state.system.textures[enum1.desert2].name = "desert2"
+	g_state.system.texture_count = 2
+	rl.UnloadImage(image)
 }
