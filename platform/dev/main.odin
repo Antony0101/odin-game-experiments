@@ -21,6 +21,7 @@ LogFile :: "./logs/frame_log.txt"
 // TODO(antony0101): check for unwanted race conditions as this boolean is used in reload thread
 should_lib_reload := false
 should_exit := false
+force_lib_build := false
 
 Game_Lib :: struct {
 	lib:    dynlib.Library,
@@ -130,6 +131,23 @@ main :: proc() {
 	should_run := true
 
 	for should_run {
+		if rl.WindowShouldClose() {
+			log.info("window exit triggered")
+			should_run = false
+			continue
+		}
+		// ctrl z is pressed rebuild and load the lib
+		if (rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)) && rl.IsKeyPressed(.Z) {
+			force_lib_build = true
+		}
+		// full reload if ctrl x is pressed
+		if (rl.IsKeyDown(.LEFT_CONTROL) || rl.IsKeyDown(.RIGHT_CONTROL)) && rl.IsKeyPressed(.X) {
+			// game reset
+			log.info("full game reset")
+			game_lib.exit(global_state)
+			game_lib.init(global_state)
+			game_lib.setup(global_state)
+		}
 		global_state.frameId = frame_timers.global_couter
 
 		// reload game lib if changes are detected by worker thread
@@ -158,9 +176,9 @@ main :: proc() {
 			time_micro_sec,
 		)
 
-		sync.atomic_store(&should_exit, !should_run)
-
 	}
+	// tell all threads to exit
+	sync.atomic_store(&should_exit, true)
 	// write frame logs
 	frame_dump_to_file(logHandler)
 	log.info("cleaning game artifacts")

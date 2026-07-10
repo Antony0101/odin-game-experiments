@@ -47,8 +47,10 @@ worker_proc :: proc() {
 		// do work
 		n := posix.read(posix.FD(fd), &buf[0], len(buf))
 		// TODO(antony0101): handle the events properly to check whether it needs full restart or just update function swapping
-		if n > 0 {
-			log.info("changes detected in game code")
+		if n > 0 || force_lib_build {
+			if force_lib_build do log.info("force building game code")
+			else do log.info("changes detected in game code")
+			force_lib_build = false
 			// os.file_de
 			b_state, b_stdout, b_stderr, b_err := os.process_exec(
 				{command = command},
