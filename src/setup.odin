@@ -25,12 +25,15 @@ game_setup :: proc(g_state: ^shared.Global_State) {
 		{1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 	}
 	image := rl.GenImageColor(320, 320, rl.BLANK)
-	textures.generateDesertTexture(&image)
-	enum1 :: textures.texture_enums
-	g_state.system.textures[enum1.desert1].texture = rl.LoadTextureFromImage(image)
-	g_state.system.textures[enum1.desert1].name = "desert1"
-	g_state.system.textures[enum1.desert2].texture = rl.LoadTextureFromImage(image)
-	g_state.system.textures[enum1.desert2].name = "desert2"
-	g_state.system.texture_count = 2
+	assert(
+		len(g_state.system.textures) >= len(textures.basic_textures),
+		"texture count is greater than texture list count",
+	)
+	for i in 0 ..< len(textures.basic_textures) {
+		textures.create_basic_texture_image(&image, textures.basic_textures[i].color)
+		g_state.system.textures[i].texture = rl.LoadTextureFromImage(image)
+		g_state.system.textures[i].name = textures.basic_textures[i].name
+	}
+	g_state.system.texture_count = len(textures.basic_textures)
 	rl.UnloadImage(image)
 }
