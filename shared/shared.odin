@@ -8,18 +8,23 @@ Log_Level :: enum {
 	Error,
 }
 
+TextureStruct :: struct {
+	name:    string,
+	texture: rl.Texture2D,
+}
+
+currentDisplay :: enum {
+	Game,
+	Texture,
+}
+
 System :: struct {
 	target:        rl.RenderTexture2D,
+	currentDisp:   currentDisplay,
 	// texture:   rl.Texture2D,
 	// layoutmap: [11][16]Tile,
 	layoutmap:     [11][16]u8,
-	// texture:   struct {
-	// 	desert1: rl.Texture2D,
-	// },
-	textures:      [30]struct {
-		name:    string,
-		texture: rl.Texture2D,
-	},
+	textures:      [30]TextureStruct,
 	texture_count: u16,
 }
 Game_State :: struct {
@@ -34,6 +39,17 @@ Game_State :: struct {
 	},
 	view:   rl.Camera2D,
 }
+Texture_Window_State :: struct {
+	selectedTile:  [2]i16,
+	textureWindow: struct {
+		isOpen:  bool,
+		pos:     rl.Vector2,
+		veiw:    rl.Camera2D,
+		dragoff: rl.Vector2,
+		isDrag:  bool,
+	},
+	view:          rl.Camera2D,
+}
 
 PlatFormFunctions :: struct {
 	flogger:  proc(frame: u64, level: Log_Level, msg: string),
@@ -44,6 +60,7 @@ Global_State :: struct {
 	frameId:    u64,
 	system:     System,
 	game_state: Game_State,
+	t_state:    Texture_Window_State,
 	pf:         PlatFormFunctions,
 }
 

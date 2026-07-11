@@ -52,7 +52,7 @@ Return :: struct {
 Style :: style.Style_Param
 
 
-Button :: proc(
+Element :: proc(
 	id: state.Cid,
 	pos: [2]f32,
 	content: Content,

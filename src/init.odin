@@ -15,5 +15,6 @@ game_exit :: proc(g_state: ^shared.Global_State) {
 	rl.UnloadRenderTexture(g_state.system.target)
 	g_state.game_state = {}
 	g_state.system = {}
+	g_state.t_state = {}
 	g_state.frameId = 0
 }

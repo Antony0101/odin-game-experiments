@@ -11,6 +11,19 @@ game_setup :: proc(g_state: ^shared.Global_State) {
 		zoom     = 1,
 		rotation = 0,
 	}
+	g_state.t_state.view = {
+		target   = {0, 0},
+		offset   = {0, 0},
+		zoom     = 1,
+		rotation = 0,
+	}
+	g_state.t_state.textureWindow.veiw = {
+		target   = {0, 0},
+		offset   = {0, 0},
+		zoom     = 1,
+		rotation = 0,
+	}
+
 	g_state.system.layoutmap = [11][16]u8 {
 		{0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0},
